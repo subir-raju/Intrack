@@ -1,0 +1,33 @@
+/* QCManagerPanel.css */
+
+.qc-manager-panel .action-buttons .action-button {
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 1em;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.qc-manager-panel .action-buttons .action-button:hover {
+  transform: scale(1.05);
+}
+
+/* Custom colors */
+.qc-manager-panel .action-buttons .action-button.success {
+  background-color: #4caf50 !important; /* green */
+  color: white !important;
+}
+
+.qc-manager-panel .action-buttons .action-button.warning {
+  background-color: #ffc107 !important; /* amber */
+  color: black !important;
+}
+
+.qc-manager-panel .action-buttons .action-button.error {
+  background-color: #f44336 !important; /* red */
+  color: white !important;
+}
+
+.qc-manager-panel .action-buttons .action-button {
+  background-color: #2196f3 !important; /* default blue */
+  color: white !important;
+}
