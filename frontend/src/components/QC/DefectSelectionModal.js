@@ -1,165 +1,136 @@
 import React, { useState } from "react";
 import {
   Modal,
-  Header,
   Button,
-  Grid,
-  Message,
-  Input,
-  Icon,
+  Checkbox,
   Form,
+  Icon,
+  Divider,
+  Header,
 } from "semantic-ui-react";
 import { useProduction } from "../../contexts/ProductionContext";
+import "../../styles/QC.css";
 
-const DefectSelectionModal = ({ open, onClose }) => {
-  const { defectTypes, addDefectType, recordProduction, loading } =
-    useProduction();
-
+function DefectSelectionModal({ open, onClose, onConfirm }) {
+  const { defectCategories, addDefectCategory } = useProduction();
   const [selectedDefects, setSelectedDefects] = useState([]);
-  const [newDefectType, setNewDefectType] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [newDefectName, setNewDefectName] = useState("");
+  const [newDefectCategory, setNewDefectCategory] = useState("");
+  const [showNewDefect, setShowNewDefect] = useState(false);
 
-  const handleDefectToggle = (defect) => {
-    setSelectedDefects((prev) =>
-      prev.includes(defect)
-        ? prev.filter((d) => d !== defect)
-        : [...prev, defect]
-    );
-  };
-
-  const handleAddDefectType = () => {
-    if (newDefectType.trim()) {
-      addDefectType(newDefectType.trim());
-      setNewDefectType("");
-      setShowAddForm(false);
+  const handleToggleDefect = (defectName) => {
+    if (selectedDefects.includes(defectName)) {
+      setSelectedDefects(selectedDefects.filter((d) => d !== defectName));
+    } else {
+      setSelectedDefects([...selectedDefects, defectName]);
     }
   };
 
-  const handleSubmit = async () => {
-    if (selectedDefects.length === 0) {
-      return;
+  const handleAddNewDefect = () => {
+    if (newDefectName.trim()) {
+      addDefectCategory(newDefectName, newDefectCategory || "Other");
+      setSelectedDefects([...selectedDefects, newDefectName]);
+      setNewDefectName("");
+      setNewDefectCategory("");
+      setShowNewDefect(false);
     }
+  };
 
-    await recordProduction("need_improvement", {
-      defects: selectedDefects,
-      defect_count: selectedDefects.length,
-    });
-
-    // Reset and close
-    setSelectedDefects([]);
-    onClose();
+  const handleConfirm = () => {
+    if (selectedDefects.length > 0) {
+      onConfirm(selectedDefects);
+      setSelectedDefects([]);
+    }
   };
 
   const handleClose = () => {
     setSelectedDefects([]);
-    setNewDefectType("");
-    setShowAddForm(false);
+    setNewDefectName("");
     onClose();
   };
 
+  // Group defects by category
+  const groupedDefects = {};
+  defectCategories.forEach((defect) => {
+    const category = defect.category || "Other";
+    if (!groupedDefects[category]) {
+      groupedDefects[category] = [];
+    }
+    groupedDefects[category].push(defect);
+  });
+
   return (
-    <Modal open={open} onClose={handleClose} size="large">
+    <Modal open={open} onClose={handleClose} size="small">
       <Modal.Header>
-        <Icon name="warning sign" color="yellow" />
-        Select Defect Types - Need Improvement
+        <Icon name="wrench" />
+        Select Defects
       </Modal.Header>
-
       <Modal.Content>
-        <Header as="h4">
-          Common Defects in Garment Manufacturing
-          <Header.Subheader>
-            Select all defects found in this product. You can select multiple
-            defects.
-          </Header.Subheader>
-        </Header>
-
-        {selectedDefects.length > 0 && (
-          <Message info>
-            <Message.Header>
-              Selected Defects ({selectedDefects.length})
-            </Message.Header>
-            <Message.List>
-              {selectedDefects.map((defect, index) => (
-                <Message.Item key={index}>{defect}</Message.Item>
+        <Form>
+          {Object.entries(groupedDefects).map(([category, defects]) => (
+            <div key={category}>
+              <Header as="h5" dividing>
+                {category}
+              </Header>
+              {defects.map((defect) => (
+                <Form.Field key={defect.id}>
+                  <Checkbox
+                    label={defect.name}
+                    checked={selectedDefects.includes(defect.name)}
+                    onChange={() => handleToggleDefect(defect.name)}
+                  />
+                </Form.Field>
               ))}
-            </Message.List>
-          </Message>
-        )}
-
-        <Grid className="defects-grid">
-          {defectTypes.map((defect, index) => (
-            <Grid.Column key={index}>
-              <Button
-                className={`defect-option ${
-                  selectedDefects.includes(defect) ? "selected" : ""
-                }`}
-                onClick={() => handleDefectToggle(defect)}
-                fluid
-              >
-                {selectedDefects.includes(defect) && <Icon name="check" />}
-                {defect}
-              </Button>
-            </Grid.Column>
+            </div>
           ))}
-        </Grid>
 
-        {/* Add New Defect Type */}
-        <div className="margin-top">
-          {!showAddForm ? (
-            <Button
-              onClick={() => setShowAddForm(true)}
-              basic
-              color="blue"
-              icon="plus"
-              content="Add New Defect Type"
-            />
+          <Divider section />
+
+          {!showNewDefect ? (
+            <Button secondary fluid onClick={() => setShowNewDefect(true)}>
+              <Icon name="plus" />
+              Add New Defect Type
+            </Button>
           ) : (
-            <Form>
+            <>
               <Form.Field>
-                <label>New Defect Type</label>
-                <Input
-                  placeholder="Enter new defect type..."
-                  value={newDefectType}
-                  onChange={(e) => setNewDefectType(e.target.value)}
-                  action={
-                    <Button
-                      color="green"
-                      onClick={handleAddDefectType}
-                      disabled={!newDefectType.trim()}
-                    >
-                      Add
-                    </Button>
-                  }
+                <label>Defect Name</label>
+                <input
+                  value={newDefectName}
+                  onChange={(e) => setNewDefectName(e.target.value)}
+                  placeholder="Enter defect name"
                 />
               </Form.Field>
-              <Button
-                basic
-                onClick={() => {
-                  setShowAddForm(false);
-                  setNewDefectType("");
-                }}
-              >
-                Cancel
-              </Button>
-            </Form>
+              <Form.Field>
+                <label>Category (Optional)</label>
+                <input
+                  value={newDefectCategory}
+                  onChange={(e) => setNewDefectCategory(e.target.value)}
+                  placeholder="e.g., Sewing, Finishing"
+                />
+              </Form.Field>
+              <Button.Group fluid>
+                <Button onClick={() => setShowNewDefect(false)}>Cancel</Button>
+                <Button positive onClick={handleAddNewDefect}>
+                  Add Defect
+                </Button>
+              </Button.Group>
+            </>
           )}
-        </div>
+        </Form>
       </Modal.Content>
-
       <Modal.Actions>
         <Button onClick={handleClose}>Cancel</Button>
         <Button
-          color="yellow"
-          onClick={handleSubmit}
-          loading={loading}
-          disabled={selectedDefects.length === 0 || loading}
+          primary
+          onClick={handleConfirm}
+          disabled={selectedDefects.length === 0}
         >
-          <Icon name="warning sign" />
-          Record Defects ({selectedDefects.length})
+          Confirm Defects ({selectedDefects.length})
         </Button>
       </Modal.Actions>
     </Modal>
   );
-};
+}
 
 export default DefectSelectionModal;

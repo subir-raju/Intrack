@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useProduction } from "../../contexts/ProductionContext";
-//import "../../styles/Navigation.css";
+import "../../styles/Navigation.css";
 
 function Navigation() {
   const navigate = useNavigate();

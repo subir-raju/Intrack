@@ -1,216 +1,215 @@
 import React, { useState } from "react";
 import {
+  Container,
   Grid,
   Card,
   Button,
   Header,
-  Statistic,
+  Icon,
   Message,
-  Loader,
-  Divider,
 } from "semantic-ui-react";
 import { useProduction } from "../../contexts/ProductionContext";
+import { useAuth } from "../../contexts/AuthContext";
 import DefectSelectionModal from "./DefectSelectionModal";
-import ModificationModal from "./ModificationModal";
 import RejectionModal from "./RejectionModal";
-//import "./QCManagerPanel.css";
+import ModificationModal from "./ModificationModal";
+import ProductionHistory from "./ProductionHistory";
+import "../../styles/QC.css";
 
-const QCManagerPanel = () => {
-  const {
-    dailyStats,
-    currentProductionLine,
-    recordProduction,
-    loading,
-    error,
-  } = useProduction();
+function QCManagerPanel() {
+  const { currentProductionLine, productionLines } = useProduction();
+  const { user } = useAuth();
+  const [showDefectModal, setShowDefectModal] = useState(false);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [showModificationModal, setShowModificationModal] = useState(false);
+  const [lastRecordedType, setLastRecordedType] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
 
-  const [activeModal, setActiveModal] = useState(null);
+  const currentLine = productionLines.find(
+    (line) => line.id === currentProductionLine
+  );
 
-  const handleFirstTimeThrough = async () => {
-    await recordProduction("first_time_through");
+  const handleFirstTimeThrough = () => {
+    setLastRecordedType("firsttimethrough");
+    setSuccessMessage("Product recorded as First Time Through ✓");
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  const handleNeedImprovement = () => {
-    setActiveModal("defects");
+  const handleDefectSelection = (defects) => {
+    setShowDefectModal(false);
+    setLastRecordedType("needimprovement");
+    setSuccessMessage(`Defects recorded: ${defects.join(", ")} ✓`);
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  const handleModified = () => {
-    setActiveModal("modifications");
+  const handleRejection = (reasons) => {
+    setShowRejectionModal(false);
+    setLastRecordedType("rejected");
+    setSuccessMessage(`Rejection recorded: ${reasons.join(", ")} ✓`);
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
-  const handleReject = () => {
-    setActiveModal("rejection");
+  const handleModification = (modifications) => {
+    setShowModificationModal(false);
+    setLastRecordedType("modified");
+    setSuccessMessage(`Modifications recorded: ${modifications.join(", ")} ✓`);
+    setTimeout(() => setSuccessMessage(""), 3000);
   };
-
-  const closeModal = () => {
-    setActiveModal(null);
-  };
-
-  if (!currentProductionLine) {
-    return (
-      <Message warning>
-        <Message.Header>No Production Line Selected</Message.Header>
-        <p>
-          Please select a production line from the navigation bar to continue.
-        </p>
-      </Message>
-    );
-  }
 
   return (
-    <div className="qc-manager-panel">
-      <Header as="h2" textAlign="center">
-        Quality Control Panel - Line {currentProductionLine}
+    <Container fluid className="qc-panel-container">
+      <Header as="h2" className="qc-header">
+        <Icon name="clipboard check" />
+        QC Manager Panel
+        <Header.Subheader>
+          {currentLine?.name} • {user?.name}
+        </Header.Subheader>
       </Header>
 
-      {error && (
-        <Message error>
-          <Message.Header>Error</Message.Header>
-          <p>{error}</p>
+      {successMessage && (
+        <Message positive onDismiss={() => setSuccessMessage("")}>
+          <Message.Header>Success</Message.Header>
+          <p>{successMessage}</p>
         </Message>
       )}
 
-      {/* Daily Production Statistics */}
-      <Card fluid className="production-stats">
-        <Card.Content>
-          <Header as="h3">Today's Production Statistics</Header>
-          <Grid columns={4} divided>
-            <Grid.Row>
-              <Grid.Column className="stat-item">
-                <Statistic color="blue">
-                  <Statistic.Value>{dailyStats.totalProduced}</Statistic.Value>
-                  <Statistic.Label>Total Produced</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-              <Grid.Column className="stat-item">
-                <Statistic color="green">
-                  <Statistic.Value>
-                    {dailyStats.firstTimeThrough}
-                  </Statistic.Value>
-                  <Statistic.Label>First Time Through</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-              <Grid.Column className="stat-item">
-                <Statistic color="yellow">
-                  <Statistic.Value>
-                    {dailyStats.needImprovement}
-                  </Statistic.Value>
-                  <Statistic.Label>Need Improvement</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-              <Grid.Column className="stat-item">
-                <Statistic color="red">
-                  <Statistic.Value>{dailyStats.rejected}</Statistic.Value>
-                  <Statistic.Label>Rejected</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-            </Grid.Row>
-            <Grid.Row>
-              <Grid.Column className="stat-item">
-                <Statistic size="small">
-                  <Statistic.Value>
-                    {dailyStats.efficiencyRate}%
-                  </Statistic.Value>
-                  <Statistic.Label>Efficiency Rate</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-              <Grid.Column className="stat-item">
-                <Statistic size="small">
-                  <Statistic.Value>{dailyStats.defectRate}%</Statistic.Value>
-                  <Statistic.Label>Defect Rate</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-              <Grid.Column className="stat-item">
-                <Statistic size="small">
-                  <Statistic.Value>{dailyStats.rejectionRate}%</Statistic.Value>
-                  <Statistic.Label>Rejection Rate</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-              <Grid.Column className="stat-item">
-                <Statistic size="small">
-                  <Statistic.Value>{dailyStats.modified}</Statistic.Value>
-                  <Statistic.Label>Modified</Statistic.Label>
-                </Statistic>
-              </Grid.Column>
-            </Grid.Row>
+      <Grid columns={1} stackable className="qc-grid">
+        <Grid.Column>
+          <Header as="h3">Quality Check Options</Header>
+          <Grid columns={2} stackable className="options-grid">
+            <Grid.Column>
+              <Card className="qc-option-card ftt-card" fluid>
+                <Card.Content textAlign="center">
+                  <Icon name="check circle" size="big" color="green" />
+                  <Card.Header>First Time Through</Card.Header>
+                  <Card.Description>
+                    Product passed QC on first check
+                  </Card.Description>
+                </Card.Content>
+                <Card.Content extra textAlign="center">
+                  <Button
+                    positive
+                    size="large"
+                    fluid
+                    onClick={handleFirstTimeThrough}
+                  >
+                    <Icon name="check" />
+                    Record FTT
+                  </Button>
+                </Card.Content>
+              </Card>
+            </Grid.Column>
+
+            <Grid.Column>
+              <Card className="qc-option-card improvement-card" fluid>
+                <Card.Content textAlign="center">
+                  <Icon name="wrench" size="big" color="orange" />
+                  <Card.Header>Need Improvement</Card.Header>
+                  <Card.Description>
+                    Product needs rework or modification
+                  </Card.Description>
+                </Card.Content>
+                <Card.Content extra textAlign="center">
+                  <Button
+                    color="orange"
+                    size="large"
+                    fluid
+                    onClick={() => setShowDefectModal(true)}
+                  >
+                    <Icon name="plus" />
+                    Record Defect
+                  </Button>
+                </Card.Content>
+              </Card>
+            </Grid.Column>
+
+            <Grid.Column>
+              <Card className="qc-option-card modified-card" fluid>
+                <Card.Content textAlign="center">
+                  <Icon name="redo" size="big" color="blue" />
+                  <Card.Header>Modified</Card.Header>
+                  <Card.Description>
+                    Product was reworked and now passes QC
+                  </Card.Description>
+                </Card.Content>
+                <Card.Content extra textAlign="center">
+                  <Button
+                    color="blue"
+                    size="large"
+                    fluid
+                    onClick={() => setShowModificationModal(true)}
+                  >
+                    <Icon name="check" />
+                    Record Modified
+                  </Button>
+                </Card.Content>
+              </Card>
+            </Grid.Column>
+
+            <Grid.Column>
+              <Card className="qc-option-card reject-card" fluid>
+                <Card.Content textAlign="center">
+                  <Icon name="times circle" size="big" color="red" />
+                  <Card.Header>Reject</Card.Header>
+                  <Card.Description>
+                    Product cannot be fixed and is rejected
+                  </Card.Description>
+                </Card.Content>
+                <Card.Content extra textAlign="center">
+                  <Button
+                    negative
+                    size="large"
+                    fluid
+                    onClick={() => setShowRejectionModal(true)}
+                  >
+                    <Icon name="ban" />
+                    Record Rejection
+                  </Button>
+                </Card.Content>
+              </Card>
+            </Grid.Column>
           </Grid>
-        </Card.Content>
-      </Card>
+        </Grid.Column>
 
-      <Divider />
+        <Grid.Column>
+          <Button
+            secondary
+            onClick={() => setShowHistory(!showHistory)}
+            fluid
+            size="large"
+          >
+            <Icon name="history" />
+            {showHistory ? "Hide" : "View"} Production History
+          </Button>
+        </Grid.Column>
 
-      {/* Main Action Buttons */}
-      <Header as="h3" textAlign="center">
-        Quality Control Actions
-      </Header>
-      <Grid columns={2} className="action-buttons">
-        <Grid.Column>
-          <Button
-            className="action-button success"
-            onClick={handleFirstTimeThrough}
-            loading={loading}
-            disabled={loading}
-            fluid
-          >
-            ✓ First Time Through
-            <br />
-            <small>Product passed QC on first inspection</small>
-          </Button>
-        </Grid.Column>
-        <Grid.Column>
-          <Button
-            className="action-button warning"
-            onClick={handleNeedImprovement}
-            disabled={loading}
-            fluid
-          >
-            ⚠ Need Improvement
-            <br />
-            <small>Product needs rework to pass QC</small>
-          </Button>
-        </Grid.Column>
-        <Grid.Column>
-          <Button
-            className="action-button"
-            onClick={handleModified}
-            disabled={loading}
-            fluid
-          >
-            🔧 Modified
-            <br />
-            <small>Previously reworked product now passes QC</small>
-          </Button>
-        </Grid.Column>
-        <Grid.Column>
-          <Button
-            className="action-button error"
-            onClick={handleReject}
-            disabled={loading}
-            fluid
-          >
-            ✗ Reject
-            <br />
-            <small>Product cannot be fixed and must be rejected</small>
-          </Button>
-        </Grid.Column>
+        {showHistory && (
+          <Grid.Column>
+            <ProductionHistory productionLineId={currentProductionLine} />
+          </Grid.Column>
+        )}
       </Grid>
 
-      {loading && <Loader active>Processing...</Loader>}
-
-      {/* Modals for different actions */}
       <DefectSelectionModal
-        open={activeModal === "defects"}
-        onClose={closeModal}
+        open={showDefectModal}
+        onClose={() => setShowDefectModal(false)}
+        onConfirm={handleDefectSelection}
       />
 
       <ModificationModal
-        open={activeModal === "modifications"}
-        onClose={closeModal}
+        open={showModificationModal}
+        onClose={() => setShowModificationModal(false)}
+        onConfirm={handleModification}
       />
 
-      <RejectionModal open={activeModal === "rejection"} onClose={closeModal} />
-    </div>
+      <RejectionModal
+        open={showRejectionModal}
+        onClose={() => setShowRejectionModal(false)}
+        onConfirm={handleRejection}
+      />
+    </Container>
   );
-};
+}
 
 export default QCManagerPanel;

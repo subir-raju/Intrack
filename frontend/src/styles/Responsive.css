@@ -1,0 +1,139 @@
+/* Mobile First Approach */
+
+/* Tablets and Up */
+@media (min-width: 768px) {
+  .main-content {
+    padding: 30px;
+  }
+
+  .options-grid .column {
+    width: 50% !important;
+  }
+}
+
+/* Medium Devices and Up */
+@media (min-width: 1024px) {
+  .main-content {
+    padding: 40px;
+  }
+
+  .options-grid .column {
+    width: 50% !important;
+  }
+
+  .chart-container {
+    min-height: 400px;
+  }
+}
+
+/* Large Devices and Up */
+@media (min-width: 1200px) {
+  .main-content {
+    padding: 50px;
+  }
+
+  .options-grid .column {
+    width: 50% !important;
+  }
+}
+
+/* Extra Large Devices */
+@media (min-width: 1400px) {
+  .main-content {
+    max-width: 1400px;
+    margin: 60px auto 0;
+  }
+}
+
+/* Small Devices */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  .role-title {
+    font-size: 1.5rem !important;
+  }
+
+  .main-content {
+    margin-top: 50px;
+    padding: 10px;
+  }
+
+  .ui.button {
+    padding: 0.8rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  .ui.table {
+    font-size: 0.75rem !important;
+  }
+
+  .stat-box .value {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main-content {
+    margin-top: 50px;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .navigation-menu,
+  .ui.button,
+  .dashboard-controls {
+    display: none;
+  }
+
+  .admin-dashboard,
+  .qc-panel-container {
+    max-width: 100%;
+  }
+
+  .ui.table {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1e1e1e;
+    color: #e0e0e0;
+  }
+
+  .main-content {
+    background: #2d2d2d;
+  }
+
+  .ui.card {
+    background: #333 !important;
+    color: #e0e0e0 !important;
+  }
+
+  .ui.table {
+    background: #2d2d2d !important;
+    color: #e0e0e0 !important;
+  }
+
+  .ui.table thead tr:first-child > th {
+    background: #1e1e1e !important;
+  }
+}

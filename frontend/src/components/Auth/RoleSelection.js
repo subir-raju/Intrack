@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, Grid, Card, Button, Header, Icon } from "semantic-ui-react";
 import { useAuth } from "../../contexts/AuthContext";
-//import "../../styles/RoleSelection.css";
+import "../../styles/RoleSelection.css";
 
 function RoleSelection() {
   const { simulateLogin, loading } = useAuth();

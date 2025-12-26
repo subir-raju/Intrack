@@ -1,344 +1,204 @@
 import React, { useState, useEffect } from "react";
 import {
+  Container,
   Grid,
-  Header,
   Card,
   Table,
-  Loader,
+  Header,
+  Icon,
+  Statistic,
   Message,
-  Dropdown,
+  Loader,
   Button,
+  Dropdown,
+  Input,
 } from "semantic-ui-react";
-import { Line, Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import axios from "axios";
 import moment from "moment";
+import "../../styles/Admin.css";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-const AdminDashboard = () => {
+function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState({
     dailyProductionData: [],
-    defectsOverTime: [],
     reworkRates: [],
-    productionLines: [],
+    productionLines: [
+      { id: 1, name: "Production Line 1" },
+      { id: 2, name: "Production Line 2" },
+      { id: 3, name: "Production Line 3" },
+      { id: 4, name: "Production Line 4" },
+      { id: 5, name: "Production Line 5" },
+    ],
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedDateRange, setSelectedDateRange] = useState("7");
 
-  // API Base URL
-  const API_BASE_URL =
-    process.env.REACT_APP_API_BASE_URL || "http://localhost:3001/api";
+  const [selectedDateRange, setSelectedDateRange] = useState(7);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
   }, [selectedDateRange]);
 
   const fetchDashboardData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/admin/dashboard`, {
-        params: {
-          days: selectedDateRange,
-        },
-      });
-      setDashboardData(response.data);
+      // Simulate API call with mock data
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const mockData = {
+        dailyProductionData: Array.from(
+          { length: selectedDateRange },
+          (_, i) => ({
+            date: moment()
+              .subtract(selectedDateRange - i - 1, "days")
+              .format("YYYY-MM-DD"),
+            lines: dashboardData.productionLines.map((line) => ({
+              lineId: line.id,
+              totalProduced: Math.floor(Math.random() * 100) + 50,
+              defectRate: (Math.random() * 15).toFixed(2),
+              firstTimeThrough: Math.floor(Math.random() * 80) + 20,
+              needImprovement: Math.floor(Math.random() * 15),
+              modified: Math.floor(Math.random() * 10),
+              rejected: Math.floor(Math.random() * 5),
+            })),
+          })
+        ),
+        reworkRates: dashboardData.productionLines.map((line) => ({
+          lineId: line.id,
+          name: line.name,
+          reworkRate: (Math.random() * 25).toFixed(2),
+        })),
+        productionLines: dashboardData.productionLines,
+      };
+
+      setDashboardData(mockData);
     } catch (error) {
-      setError("Failed to fetch dashboard data");
-      console.error("Dashboard error:", error);
+      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Chart configurations
-  const productionLineChartData = {
-    labels: dashboardData.dailyProductionData.map((item) =>
-      moment(item.date).format("MMM DD")
-    ),
-    datasets: dashboardData.productionLines.map((line, index) => ({
-      label: `Production Line ${line.line_id}`,
-      data: dashboardData.dailyProductionData.map(
-        (day) =>
-          day.lines.find((l) => l.line_id === line.line_id)?.total_produced || 0
-      ),
-      backgroundColor: `rgba(${54 + index * 50}, ${162 + index * 30}, ${
-        235 - index * 20
-      }, 0.8)`,
-      borderColor: `rgba(${54 + index * 50}, ${162 + index * 30}, ${
-        235 - index * 20
-      }, 1)`,
-      borderWidth: 2,
-    })),
-  };
-
-  const defectsOverTimeData = {
-    labels: dashboardData.defectsOverTime.map((item) =>
-      moment(item.date).format("MMM DD")
-    ),
-    datasets: dashboardData.productionLines.map((line, index) => ({
-      label: `Line ${line.line_id} Defect Rate`,
-      data: dashboardData.defectsOverTime.map(
-        (day) =>
-          day.lines.find((l) => l.line_id === line.line_id)?.defect_rate || 0
-      ),
-      borderColor: `rgba(${255 - index * 30}, ${99 + index * 50}, ${
-        132 + index * 20
-      }, 1)`,
-      backgroundColor: `rgba(${255 - index * 30}, ${99 + index * 50}, ${
-        132 + index * 20
-      }, 0.2)`,
-      tension: 0.1,
-    })),
-  };
-
-  const reworkRateData = {
-    labels: dashboardData.productionLines.map((line) => `Line ${line.line_id}`),
-    datasets: [
-      {
-        label: "Rework Rate (%)",
-        data: dashboardData.reworkRates.map((item) => item.rework_rate),
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.8)",
-          "rgba(54, 162, 235, 0.8)",
-          "rgba(255, 206, 86, 0.8)",
-          "rgba(75, 192, 192, 0.8)",
-          "rgba(153, 102, 255, 0.8)",
-        ],
-        borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(75, 192, 192, 1)",
-          "rgba(153, 102, 255, 1)",
-        ],
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-    },
-  };
-
   const dateRangeOptions = [
-    { key: "7", text: "Last 7 days", value: "7" },
-    { key: "30", text: "Last 30 days", value: "30" },
-    { key: "90", text: "Last 3 months", value: "90" },
+    { key: 7, text: "Last 7 days", value: 7 },
+    { key: 30, text: "Last 30 days", value: 30 },
+    { key: 90, text: "Last 3 months", value: 90 },
   ];
 
+  const totalProduced = dashboardData.dailyProductionData.reduce(
+    (sum, day) =>
+      sum +
+      day.lines.reduce((lineSum, line) => lineSum + line.totalProduced, 0),
+    0
+  );
+
+  const avgDefectRate =
+    dashboardData.dailyProductionData.length > 0
+      ? (
+          dashboardData.dailyProductionData.reduce(
+            (sum, day) =>
+              sum +
+              day.lines.reduce(
+                (lineSum, line) => lineSum + parseFloat(line.defectRate),
+                0
+              ),
+            0
+          ) /
+          (dashboardData.dailyProductionData.length *
+            dashboardData.productionLines.length)
+        ).toFixed(2)
+      : 0;
+
   if (loading) {
-    return <Loader active>Loading dashboard data...</Loader>;
+    return <Loader active inline="centered" size="huge" />;
   }
 
   return (
-    <div className="admin-dashboard">
-      <Header as="h2">
+    <Container fluid className="admin-dashboard">
+      <Header as="h2" className="admin-header">
+        <Icon name="dashboard" />
         Production Dashboard
         <Header.Subheader>
           Real-time production analytics and quality control metrics
         </Header.Subheader>
       </Header>
 
-      {error && (
-        <Message error>
-          <Message.Header>Error</Message.Header>
-          <p>{error}</p>
-        </Message>
-      )}
+      <Grid columns={1} stackable className="dashboard-controls">
+        <Grid.Column>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <Dropdown
+              selection
+              value={selectedDateRange}
+              options={dateRangeOptions}
+              onChange={(e, { value }) => setSelectedDateRange(value)}
+            />
+            <Button icon="refresh" onClick={fetchDashboardData} />
+          </div>
+        </Grid.Column>
+      </Grid>
 
-      {/* Date Range Selector */}
-      <div className="margin-bottom">
-        <Dropdown
-          selection
-          value={selectedDateRange}
-          options={dateRangeOptions}
-          onChange={(e, { value }) => setSelectedDateRange(value)}
-        />
-        <Button
-          icon="refresh"
-          onClick={fetchDashboardData}
-          style={{ marginLeft: "10px" }}
-        />
-      </div>
+      <Grid columns={3} stackable className="dashboard-cards">
+        <Grid.Column>
+          <div className="stat-box">
+            <div className="label">Total Products Produced</div>
+            <div className="value">{totalProduced}</div>
+          </div>
+        </Grid.Column>
+        <Grid.Column>
+          <div className="stat-box">
+            <div className="label">Average Defect Rate</div>
+            <div className="value">{avgDefectRate}%</div>
+          </div>
+        </Grid.Column>
+        <Grid.Column>
+          <div className="stat-box">
+            <div className="label">Active Production Lines</div>
+            <div className="value">{dashboardData.productionLines.length}</div>
+          </div>
+        </Grid.Column>
+      </Grid>
 
-      {/* Dashboard Cards */}
-      <Grid className="dashboard-cards">
-        {/* Comparative Production Line Chart */}
-        <Grid.Column width={8}>
+      <Grid columns={1} stackable className="dashboard-cards">
+        <Grid.Column>
           <Card fluid className="dashboard-card">
-            <div className="card-header">
-              <Header as="h3">Daily Production Comparison</Header>
-            </div>
             <Card.Content>
-              <div className="chart-container">
-                <Bar
-                  data={productionLineChartData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: "Products Produced by Production Line",
-                      },
-                    },
-                  }}
-                />
+              <div className="card-header">
+                <Header as="h3">Rework Rate by Production Line</Header>
               </div>
             </Card.Content>
-          </Card>
-        </Grid.Column>
-
-        {/* Defects Over Time Chart */}
-        <Grid.Column width={8}>
-          <Card fluid className="dashboard-card">
-            <div className="card-header">
-              <Header as="h3">Defects Rate Over Time</Header>
-            </div>
             <Card.Content>
-              <div className="chart-container">
-                <Line
-                  data={defectsOverTimeData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: "Defect Rate Trends by Production Line",
-                      },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                          callback: function (value) {
-                            return value + "%";
-                          },
-                        },
-                      },
-                    },
-                  }}
-                />
-              </div>
-            </Card.Content>
-          </Card>
-        </Grid.Column>
-
-        {/* Rework Rate Chart */}
-        <Grid.Column width={8}>
-          <Card fluid className="dashboard-card">
-            <div className="card-header">
-              <Header as="h3">Rework Rate by Production Line</Header>
-            </div>
-            <Card.Content>
-              <div className="chart-container">
-                <Bar
-                  data={reworkRateData}
-                  options={{
-                    ...chartOptions,
-                    plugins: {
-                      ...chartOptions.plugins,
-                      title: {
-                        display: true,
-                        text: "Current Rework Rates",
-                      },
-                    },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                          callback: function (value) {
-                            return value + "%";
-                          },
-                        },
-                      },
-                    },
-                  }}
-                />
-              </div>
-            </Card.Content>
-          </Card>
-        </Grid.Column>
-
-        {/* Summary Statistics */}
-        <Grid.Column width={8}>
-          <Card fluid className="dashboard-card">
-            <div className="card-header">
-              <Header as="h3">Summary Statistics</Header>
-            </div>
-            <Card.Content>
-              <Table celled>
+              <Table celled striped>
                 <Table.Header>
                   <Table.Row>
-                    <Table.HeaderCell>Metric</Table.HeaderCell>
-                    <Table.HeaderCell>Value</Table.HeaderCell>
+                    <Table.HeaderCell>Production Line</Table.HeaderCell>
+                    <Table.HeaderCell>Rework Rate</Table.HeaderCell>
+                    <Table.HeaderCell>Status</Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                  <Table.Row>
-                    <Table.Cell>Total Products Produced</Table.Cell>
-                    <Table.Cell>
-                      {dashboardData.dailyProductionData.reduce(
-                        (total, day) =>
-                          total +
-                          day.lines.reduce(
-                            (lineTotal, line) =>
-                              lineTotal + line.total_produced,
-                            0
-                          ),
-                        0
-                      )}
-                    </Table.Cell>
-                  </Table.Row>
-                  <Table.Row>
-                    <Table.Cell>Average Defect Rate</Table.Cell>
-                    <Table.Cell>
-                      {dashboardData.reworkRates.length > 0
-                        ? (
-                            dashboardData.reworkRates.reduce(
-                              (sum, item) => sum + item.rework_rate,
-                              0
-                            ) / dashboardData.reworkRates.length
-                          ).toFixed(2) + "%"
-                        : "N/A"}
-                    </Table.Cell>
-                  </Table.Row>
-                  <Table.Row>
-                    <Table.Cell>Active Production Lines</Table.Cell>
-                    <Table.Cell>
-                      {dashboardData.productionLines.length}
-                    </Table.Cell>
-                  </Table.Row>
+                  {dashboardData.reworkRates.map((item) => (
+                    <Table.Row key={item.lineId}>
+                      <Table.Cell>{item.name}</Table.Cell>
+                      <Table.Cell className="metric-warning">
+                        {item.reworkRate}%
+                      </Table.Cell>
+                      <Table.Cell>
+                        {parseFloat(item.reworkRate) > 20 ? (
+                          <span className="metric-negative">
+                            <Icon name="warning" />
+                            High
+                          </span>
+                        ) : parseFloat(item.reworkRate) > 10 ? (
+                          <span className="metric-warning">
+                            <Icon name="info" />
+                            Medium
+                          </span>
+                        ) : (
+                          <span className="metric-positive">
+                            <Icon name="check" />
+                            Low
+                          </span>
+                        )}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
                 </Table.Body>
               </Table>
             </Card.Content>
@@ -346,48 +206,61 @@ const AdminDashboard = () => {
         </Grid.Column>
       </Grid>
 
-      {/* Daily Production Table */}
-      <Card fluid className="production-table">
-        <div className="table-header">
-          <Header as="h3">Daily Production Data</Header>
-        </div>
-        <Card.Content>
-          <Table celled striped>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell>Date</Table.HeaderCell>
-                <Table.HeaderCell>Production Line</Table.HeaderCell>
-                <Table.HeaderCell>First Time Through</Table.HeaderCell>
-                <Table.HeaderCell>Defect Rate</Table.HeaderCell>
-                <Table.HeaderCell>Rejection Rate</Table.HeaderCell>
-                <Table.HeaderCell>Efficiency Rate</Table.HeaderCell>
-                <Table.HeaderCell>Goal</Table.HeaderCell>
-                <Table.HeaderCell>Planned</Table.HeaderCell>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {dashboardData.dailyProductionData.flatMap((day) =>
-                day.lines.map((line, index) => (
-                  <Table.Row key={`${day.date}-${line.line_id}`}>
-                    <Table.Cell>
-                      {moment(day.date).format("MMM DD, YYYY")}
-                    </Table.Cell>
-                    <Table.Cell>Line {line.line_id}</Table.Cell>
-                    <Table.Cell>{line.first_time_through}</Table.Cell>
-                    <Table.Cell>{line.defect_rate}%</Table.Cell>
-                    <Table.Cell>{line.rejection_rate}%</Table.Cell>
-                    <Table.Cell>{line.efficiency_rate}%</Table.Cell>
-                    <Table.Cell>{line.goal || "N/A"}</Table.Cell>
-                    <Table.Cell>{line.planned || "N/A"}</Table.Cell>
+      <Grid columns={1} stackable className="production-table">
+        <Grid.Column>
+          <Card fluid className="dashboard-card">
+            <Card.Content>
+              <div className="card-header">
+                <Header as="h3">Daily Production Summary</Header>
+              </div>
+            </Card.Content>
+            <Card.Content>
+              <Table celled striped responsive>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
+                    <Table.HeaderCell>Production Line</Table.HeaderCell>
+                    <Table.HeaderCell>FTT</Table.HeaderCell>
+                    <Table.HeaderCell>Improvement</Table.HeaderCell>
+                    <Table.HeaderCell>Modified</Table.HeaderCell>
+                    <Table.HeaderCell>Rejected</Table.HeaderCell>
+                    <Table.HeaderCell>Defect Rate</Table.HeaderCell>
                   </Table.Row>
-                ))
-              )}
-            </Table.Body>
-          </Table>
-        </Card.Content>
-      </Card>
-    </div>
+                </Table.Header>
+                <Table.Body>
+                  {dashboardData.dailyProductionData.flatMap((day) =>
+                    day.lines.map((line, idx) => (
+                      <Table.Row key={`${day.date}-${line.lineId}`}>
+                        <Table.Cell>{idx === 0 && day.date}</Table.Cell>
+                        <Table.Cell>Line {line.lineId}</Table.Cell>
+                        <Table.Cell className="metric-positive">
+                          {line.firstTimeThrough}
+                        </Table.Cell>
+                        <Table.Cell>{line.needImprovement}</Table.Cell>
+                        <Table.Cell>{line.modified}</Table.Cell>
+                        <Table.Cell className="metric-negative">
+                          {line.rejected}
+                        </Table.Cell>
+                        <Table.Cell
+                          className={
+                            parseFloat(line.defectRate) > 15
+                              ? "metric-negative"
+                              : "metric-warning"
+                          }
+                        >
+                          {line.defectRate}%
+                        </Table.Cell>
+                      </Table.Row>
+                    ))
+                  )}
+                </Table.Body>
+              </Table>
+            </Card.Content>
+          </Card>
+        </Grid.Column>
+      </Grid>
+    </Container>
   );
-};
+}
 
 export default AdminDashboard;

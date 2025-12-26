@@ -1,0 +1,48 @@
+.navigation-menu {
+  background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.navigation-menu .ui.container {
+  padding: 0 !important;
+}
+
+.navigation-menu .item {
+  padding: 0.92857143em 1.14285714em !important;
+}
+
+.navigation-menu .header {
+  font-weight: 600 !important;
+  font-size: 1.2rem !important;
+}
+
+.menu-label {
+  margin-right: 10px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.production-line-dropdown {
+  min-width: 200px;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .navigation-menu .item {
+    padding: 0.7em 0.8em !important;
+    font-size: 0.9rem !important;
+  }
+
+  .production-line-dropdown {
+    min-width: 150px;
+  }
+
+  .menu-label {
+    display: none;
+  }
+}

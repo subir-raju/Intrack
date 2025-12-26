@@ -1,0 +1,81 @@
+.role-selection-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.role-selection-content {
+  text-align: center;
+  color: white;
+}
+
+.role-title {
+  font-size: 3.5rem !important;
+  margin-bottom: 0.5rem !important;
+  color: white !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.role-subtitle {
+  font-size: 1.25rem !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin-bottom: 3rem !important;
+}
+
+.role-grid {
+  margin-top: 3rem !important;
+}
+
+.role-card {
+  background: white !important;
+  border: none !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  border-radius: 12px !important;
+}
+
+.role-card:hover {
+  transform: translateY(-10px) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+.role-card-title {
+  font-size: 1.5rem !important;
+  margin: 1rem 0 !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+.role-card-description {
+  font-size: 0.95rem !important;
+  color: #666 !important;
+  line-height: 1.6 !important;
+  margin: 1rem 0 !important;
+}
+
+.role-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  margin-top: 1rem !important;
+}
+
+.role-button:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a4291 100%) !important;
+}
+
+@media (max-width: 768px) {
+  .role-title {
+    font-size: 2rem !important;
+  }
+
+  .role-subtitle {
+    font-size: 1rem !important;
+  }
+
+  .role-grid {
+    flex-direction: column !important;
+  }
+}

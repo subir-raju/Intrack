@@ -1,0 +1,120 @@
+.qc-panel-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.qc-header {
+  margin-bottom: 2rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 2px solid #ddd !important;
+  color: #2c3e50 !important;
+}
+
+.qc-grid {
+  margin-top: 2rem !important;
+}
+
+.options-grid {
+  margin-bottom: 2rem !important;
+}
+
+.qc-option-card {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+  border: 2px solid transparent !important;
+}
+
+.qc-option-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.ftt-card {
+  border-top: 4px solid #27ae60 !important;
+}
+
+.improvement-card {
+  border-top: 4px solid #f39c12 !important;
+}
+
+.modified-card {
+  border-top: 4px solid #3498db !important;
+}
+
+.reject-card {
+  border-top: 4px solid #e74c3c !important;
+}
+
+.qc-option-card .ui.button {
+  margin-top: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.history-card {
+  margin-top: 2rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+.history-card .ui.table {
+  margin-bottom: 0 !important;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.type-badge.green {
+  background: #d4edda;
+  color: #155724;
+}
+
+.type-badge.orange {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.type-badge.blue {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.type-badge.red {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+@media (max-width: 1024px) {
+  .qc-panel-container {
+    padding: 15px;
+  }
+
+  .options-grid {
+    columns: 1 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .qc-header {
+    font-size: 1.5rem !important;
+  }
+
+  .qc-option-card {
+    margin-bottom: 15px !important;
+  }
+
+  .options-grid .column {
+    width: 100% !important;
+  }
+
+  .history-card .ui.table {
+    font-size: 0.85rem;
+  }
+}
