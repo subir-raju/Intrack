@@ -1,60 +1,56 @@
-const { logger } = require("../utils/logger");
+const Joi = require("joi");
+const logger = require("../utils/logger");
 
-const errorHandler = (error, req, res, next) => {
-  let statusCode = 500;
-  let message = "Internal Server Error";
+const schemas = {
+  loginSchema: Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+  }),
 
-  // Log the error
-  logger.error("Error occurred:", {
-    message: error.message,
-    stack: error.stack,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get("User-Agent"),
-  });
+  registerSchema: Joi.object({
+    name: Joi.string().min(2).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+    role: Joi.string().valid("admin", "qcmanager").required(),
+    productionLineId: Joi.number().integer().optional(),
+  }),
 
-  // Handle specific error types
-  if (error.name === "ValidationError") {
-    statusCode = 400;
-    message = "Validation Error";
-  } else if (error.name === "UnauthorizedError") {
-    statusCode = 401;
-    message = "Unauthorized";
-  } else if (error.name === "ForbiddenError") {
-    statusCode = 403;
-    message = "Forbidden";
-  } else if (error.name === "NotFoundError") {
-    statusCode = 404;
-    message = "Not Found";
-  } else if (error.code === "ER_DUP_ENTRY") {
-    statusCode = 409;
-    message = "Duplicate entry";
-  } else if (error.code === "ER_NO_REFERENCED_ROW_2") {
-    statusCode = 400;
-    message = "Referenced record does not exist";
-  }
-
-  // Don't leak error details in production
-  const errorResponse = {
-    success: false,
-    message: message,
-    ...(process.env.NODE_ENV === "development" && {
-      error: error.message,
-      stack: error.stack,
-    }),
-  };
-
-  res.status(statusCode).json(errorResponse);
+  productionRecordSchema: Joi.object({
+    productionLineId: Joi.number().integer().required(),
+    type: Joi.string()
+      .valid("firsttimethrough", "needimprovement", "modified", "rejected")
+      .required(),
+    timestamp: Joi.date().iso().required(),
+    defects: Joi.array().items(Joi.string()).optional(),
+    modifications: Joi.array().items(Joi.string()).optional(),
+    rejectionReasons: Joi.array().items(Joi.string()).optional(),
+    notes: Joi.string().optional(),
+  }),
 };
 
-const notFoundHandler = (req, res, next) => {
-  const error = new Error(`Route ${req.originalUrl} not found`);
-  error.name = "NotFoundError";
-  next(error);
+const validateRequest = (schema) => {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+      const details = error.details.map((detail) => ({
+        field: detail.path.join("."),
+        message: detail.message,
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: details,
+      });
+    }
+
+    req.validatedData = value;
+    next();
+  };
 };
 
 module.exports = {
-  errorHandler,
-  notFoundHandler,
+  schemas,
+  validateRequest,
 };
