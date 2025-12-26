@@ -1,58 +1,67 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Container } from "semantic-ui-react";
-import "semantic-ui-css/semantic.min.css";
-import "./App.css";
-
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProductionProvider } from "./contexts/ProductionContext";
-import { AuthProvider } from "./contexts/AuthContext";
-
-import Navigation from "./components/Navigation/Navigation";
-import QCManagerPanel from "./components/QCManager/QCManagerPanel";
-import AdminDashboard from "./components/Admin/AdminDashboard";
-import Login from "./components/Auth/Login";
+import RoleSelection from "./components/Auth/RoleSelection";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
+import Navigation from "./components/Common/Navigation";
+import QCManagerPanel from "./components/QC/QCManagerPanel";
+import AdminDashboard from "./components/Admin/AdminDashboard";
+import "./App.css";
+import "semantic-ui-css/semantic.min.css";
+
+function AppContent() {
+  const { isAuthenticated, role } = useAuth();
+
+  if (!isAuthenticated) {
+    return <RoleSelection />;
+  }
+
+  return (
+    <div className="app-container">
+      <Navigation />
+      <div className="main-content">
+        <Routes>
+          <Route
+            path="/qc"
+            element={
+              <ProtectedRoute requiredRole="qcmanager">
+                <QCManagerPanel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={<Navigate to={role === "admin" ? "/admin" : "/qc"} />}
+          />
+        </Routes>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   return (
-    <AuthProvider>
-      <ProductionProvider>
-        <Router>
-          <div className="App">
-            <Navigation />
-            <Container style={{ marginTop: "7em" }}>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route
-                  path="/qc-manager"
-                  element={
-                    <ProtectedRoute requiredRole="qc_manager">
-                      <QCManagerPanel />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <QCManagerPanel />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </Container>
-          </div>
-        </Router>
-      </ProductionProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <ProductionProvider>
+          <AppContent />
+        </ProductionProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

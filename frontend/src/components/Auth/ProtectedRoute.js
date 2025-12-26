@@ -1,29 +1,24 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { Loader } from "semantic-ui-react";
+import LoadingSpinner from "../Common/LoadingSpinner";
 
-const ProtectedRoute = ({ children, requiredRole = null }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+function ProtectedRoute({ children, requiredRole }) {
+  const { isAuthenticated, role, loading } = useAuth();
 
   if (loading) {
-    return <Loader active>Checking authentication...</Loader>;
+    return <LoadingSpinner />;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
-  // Check role-based access
-  if (requiredRole && user?.role !== requiredRole) {
-    if (user?.role === "admin") {
-      return <Navigate to="/admin" replace />;
-    } else {
-      return <Navigate to="/qc-manager" replace />;
-    }
+  if (requiredRole && role !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
-};
+}
 
 export default ProtectedRoute;

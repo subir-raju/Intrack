@@ -1,69 +1,67 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
+import api from "../utils/api";
 
 const AuthContext = createContext();
 
-const DEMO_USERS = [
-  {
-    email: "admin@demo.com",
-    password: "admiiin123",
-    role: "admin",
-    name: "Demo Admin",
-  },
-  {
-    email: "qc@demo.com",
-    password: "qc123",
-    role: "qc_manager",
-    name: "Demo QC",
-  },
-];
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [error, setError] = useState(null);
+  const simulateLogin = useCallback((selectedRole) => {
+    setLoading(true);
+    try {
+      // Simulate user data based on role
+      const userData = {
+        id: Math.floor(Math.random() * 1000),
+        name: selectedRole === "admin" ? "Admin User" : "QC Manager",
+        email: `${selectedRole}@intrack.local`,
+        role: selectedRole,
+        productionLineId:
+          selectedRole === "admin" ? null : Math.floor(Math.random() * 5) + 1,
+      };
 
-  const login = (email, password) => {
-    const found = DEMO_USERS.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (found) {
-      localStorage.setItem("user", JSON.stringify(found));
-      setUser(found);
-      setError(null);
-      return { success: true };
-    } else {
-      setError("Invalid email or password");
-      return { success: false, message: "Invalid email or password" };
+      // Simulate token (in real app, this comes from backend)
+      const fakeToken = `fake_token_${Date.now()}`;
+
+      localStorage.setItem("token", fakeToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("role", selectedRole);
+
+      setUser(userData);
+      setRole(selectedRole);
+      setIsAuthenticated(true);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("role");
     setUser(null);
-  };
-
-  const register = () => ({ success: false, message: "Registration disabled" });
+    setRole(null);
+    setIsAuthenticated(false);
+  }, []);
 
   const value = {
     user,
-    error,
-    login,
+    isAuthenticated,
+    role,
+    loading,
+    simulateLogin,
     logout,
-    register,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === "admin",
-    isQCManager: user?.role === "qc_manager",
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
-};
+}
