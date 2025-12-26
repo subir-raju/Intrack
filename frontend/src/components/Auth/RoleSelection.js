@@ -44,7 +44,6 @@ function RoleSelection() {
                     disabled={loading}
                     fluid
                   >
-                    <Icon name="arrow right" />
                     Admin
                   </Button>
                 </Card.Content>
@@ -72,7 +71,6 @@ function RoleSelection() {
                     disabled={loading}
                     fluid
                   >
-                    <Icon name="arrow right" />
                     QC Manager
                   </Button>
                 </Card.Content>
