@@ -1,0 +1,15 @@
+# Node dependencies
+node_modules/
+frontend/node_modules/
+
+# Cache files
+.cache/
+**/.cache/
+
+# Build outputs (optional but recommended)
+dist/
+build/
+
+# OS files
+.DS_Store
+
