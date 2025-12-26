@@ -31,8 +31,7 @@ function RoleSelection() {
                     Admin Dashboard
                   </Card.Header>
                   <Card.Description className="role-card-description">
-                    View comprehensive analytics and production metrics across
-                    all lines
+                    View comprehensive analytics and production metrics
                   </Card.Description>
                 </Card.Content>
                 <Card.Content extra textAlign="center">
