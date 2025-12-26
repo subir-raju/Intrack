@@ -1,76 +1,135 @@
-const { Model } = require("objection");
+const pool = require("../config/database");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-class User extends Model {
-  static get tableName() {
-    return "users";
-  }
+class User {
+  static async createUser(userData) {
+    const { name, email, password, role, productionLineId } = userData;
 
-  static get idColumn() {
-    return "id";
-  }
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-  static get jsonSchema() {
-    return {
-      type: "object",
-      required: ["email", "password", "role"],
-      properties: {
-        id: { type: "integer" },
-        name: { type: "string", minLength: 2, maxLength: 100 },
-        email: { type: "string", format: "email", maxLength: 255 },
-        password: { type: "string", minLength: 6 },
-        role: { type: "string", enum: ["admin", "qc_manager"] },
-        production_line_id: { type: ["integer", "null"] },
-        is_active: { type: "boolean", default: true },
-        created_at: { type: "string", format: "date-time" },
-        updated_at: { type: "string", format: "date-time" },
-      },
-    };
-  }
+      const [result] = await pool.query(
+        "INSERT INTO users (name, email, password, role, production_line_id) VALUES (?, ?, ?, ?, ?)",
+        [name, email, hashedPassword, role, productionLineId || null]
+      );
 
-  static get relationMappings() {
-    const ProductionLine = require("./ProductionLine");
-
-    return {
-      productionLine: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: ProductionLine,
-        join: {
-          from: "users.production_line_id",
-          to: "production_lines.id",
-        },
-      },
-    };
-  }
-
-  // Hash password before saving
-  async $beforeInsert(queryContext) {
-    await super.$beforeInsert(queryContext);
-    if (this.password) {
-      this.password = await bcrypt.hash(this.password, 12);
+      return {
+        id: result.insertId,
+        name,
+        email,
+        role,
+        productionLineId,
+      };
+    } catch (error) {
+      throw error;
     }
-    this.created_at = new Date().toISOString();
-    this.updated_at = new Date().toISOString();
   }
 
-  async $beforeUpdate(opt, queryContext) {
-    await super.$beforeUpdate(opt, queryContext);
-    if (this.password) {
-      this.password = await bcrypt.hash(this.password, 12);
+  static async findByEmail(email) {
+    try {
+      const [rows] = await pool.query(
+        "SELECT * FROM users WHERE email = ? AND is_active = TRUE",
+        [email]
+      );
+
+      return rows;
+    } catch (error) {
+      throw error;
     }
-    this.updated_at = new Date().toISOString();
   }
 
-  // Verify password
-  async verifyPassword(password) {
-    return bcrypt.compare(password, this.password);
+  static async findById(id) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT id, name, email, role, production_line_id as productionLineId, is_active, created_at
+         FROM users WHERE id = ? AND is_active = TRUE`,
+        [id]
+      );
+
+      return rows;
+    } catch (error) {
+      throw error;
+    }
   }
 
-  // Remove password from JSON output
-  $formatJson(json) {
-    json = super.$formatJson(json);
-    delete json.password;
-    return json;
+  static async verifyPassword(plainPassword, hashedPassword) {
+    return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  static async generateToken(user) {
+    return jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        productionLineId: user.production_line_id,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || "7d" }
+    );
+  }
+
+  static async getAllUsers(filters = {}) {
+    try {
+      let query =
+        "SELECT id, name, email, role, production_line_id as productionLineId, is_active, created_at FROM users WHERE is_active = TRUE";
+      const params = [];
+
+      if (filters.role) {
+        query += " AND role = ?";
+        params.push(filters.role);
+      }
+
+      if (filters.productionLineId) {
+        query += " AND production_line_id = ?";
+        params.push(filters.productionLineId);
+      }
+
+      query += " ORDER BY created_at DESC";
+
+      const [rows] = await pool.query(query, params);
+      return rows;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async updateUser(id, updateData) {
+    try {
+      const fields = [];
+      const values = [];
+
+      for (const [key, value] of Object.entries(updateData)) {
+        if (value !== undefined && value !== null) {
+          const dbField = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+          fields.push(`${dbField} = ?`);
+          values.push(value);
+        }
+      }
+
+      if (fields.length === 0) {
+        return { id };
+      }
+
+      values.push(id);
+      const query = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
+
+      await pool.query(query, values);
+      return this.findById(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async deactivateUser(id) {
+    try {
+      await pool.query("UPDATE users SET is_active = FALSE WHERE id = ?", [id]);
+      return true;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

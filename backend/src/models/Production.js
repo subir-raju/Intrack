@@ -1,168 +1,198 @@
-const { Model } = require("objection");
+const pool = require("../config/database");
+const moment = require("moment");
 
-class Production extends Model {
-  static get tableName() {
-    return "production_records";
-  }
+class Production {
+  static async recordProduction(data) {
+    const {
+      productionLineId,
+      qcManagerId,
+      type,
+      timestamp,
+      defects,
+      modifications,
+      rejectionReasons,
+      notes,
+    } = data;
 
-  static get idColumn() {
-    return "id";
-  }
-
-  static get jsonSchema() {
-    return {
-      type: "object",
-      required: ["production_line_id", "type", "timestamp"],
-      properties: {
-        id: { type: "integer" },
-        production_line_id: { type: "integer" },
-        qc_manager_id: { type: "integer" },
-        type: {
-          type: "string",
-          enum: [
-            "first_time_through",
-            "need_improvement",
-            "modified",
-            "rejected",
-          ],
-        },
-        defects: { type: ["array", "null"] },
-        defect_count: { type: ["integer", "null"] },
-        modifications: { type: ["array", "null"] },
-        modification_count: { type: ["integer", "null"] },
-        rejection_reasons: { type: ["array", "null"] },
-        reason_count: { type: ["integer", "null"] },
-        timestamp: { type: "string", format: "date-time" },
-        created_at: { type: "string", format: "date-time" },
-        updated_at: { type: "string", format: "date-time" },
-      },
-    };
-  }
-
-  static get relationMappings() {
-    const User = require("./User");
-    const ProductionLine = require("./ProductionLine");
-
-    return {
-      qcManager: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: User,
-        join: {
-          from: "production_records.qc_manager_id",
-          to: "users.id",
-        },
-      },
-      productionLine: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: ProductionLine,
-        join: {
-          from: "production_records.production_line_id",
-          to: "production_lines.id",
-        },
-      },
-    };
-  }
-
-  async $beforeInsert(queryContext) {
-    await super.$beforeInsert(queryContext);
-    this.created_at = new Date().toISOString();
-    this.updated_at = new Date().toISOString();
-  }
-
-  async $beforeUpdate(opt, queryContext) {
-    await super.$beforeUpdate(opt, queryContext);
-    this.updated_at = new Date().toISOString();
-  }
-
-  // Static methods for analytics
-  static async getDailyStats(productionLineId, date) {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const stats = await this.query()
-      .select("type")
-      .count("id as count")
-      .where("production_line_id", productionLineId)
-      .whereBetween("timestamp", [
-        startOfDay.toISOString(),
-        endOfDay.toISOString(),
-      ])
-      .groupBy("type");
-
-    // Initialize default values
-    const result = {
-      totalProduced: 0,
-      firstTimeThrough: 0,
-      needImprovement: 0,
-      modified: 0,
-      rejected: 0,
-      defectRate: 0,
-      rejectionRate: 0,
-      efficiencyRate: 0,
-    };
-
-    // Process the results
-    stats.forEach((stat) => {
-      const count = parseInt(stat.count);
-      result.totalProduced += count;
-
-      switch (stat.type) {
-        case "first_time_through":
-          result.firstTimeThrough = count;
-          break;
-        case "need_improvement":
-          result.needImprovement = count;
-          break;
-        case "modified":
-          result.modified = count;
-          break;
-        case "rejected":
-          result.rejected = count;
-          break;
-      }
-    });
-
-    if (result.totalProduced > 0) {
-      result.defectRate = parseFloat(
-        (
-          ((result.needImprovement + result.rejected) / result.totalProduced) *
-          100
-        ).toFixed(2)
+    try {
+      const [result] = await pool.query(
+        `INSERT INTO production_records 
+         (production_line_id, qc_manager_id, type, timestamp, defects, defect_count, 
+          modifications, modification_count, rejection_reasons, reason_count, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          productionLineId,
+          qcManagerId,
+          type,
+          timestamp,
+          JSON.stringify(defects || []),
+          (defects || []).length,
+          JSON.stringify(modifications || []),
+          (modifications || []).length,
+          JSON.stringify(rejectionReasons || []),
+          (rejectionReasons || []).length,
+          notes || null,
+        ]
       );
-      result.rejectionRate = parseFloat(
-        ((result.rejected / result.totalProduced) * 100).toFixed(2)
-      );
-      result.efficiencyRate = parseFloat(
-        ((result.firstTimeThrough / result.totalProduced) * 100).toFixed(2)
-      );
+
+      return {
+        id: result.insertId,
+        productionLineId,
+        qcManagerId,
+        type,
+        timestamp,
+      };
+    } catch (error) {
+      throw error;
     }
+  }
 
-    return result;
+  static async getDailyStats(productionLineId, date) {
+    try {
+      const startOfDay = moment(date).startOf("day").toISOString();
+      const endOfDay = moment(date).endOf("day").toISOString();
+
+      const [rows] = await pool.query(
+        `SELECT 
+           type,
+           COUNT(*) as count,
+           SUM(defect_count) as totalDefects
+         FROM production_records
+         WHERE production_line_id = ? AND timestamp BETWEEN ? AND ?
+         GROUP BY type`,
+        [productionLineId, startOfDay, endOfDay]
+      );
+
+      const stats = {
+        date,
+        firstTimeThrough: 0,
+        needImprovement: 0,
+        modified: 0,
+        rejected: 0,
+        totalProduced: 0,
+        totalDefects: 0,
+        defectRate: 0,
+        rejectionRate: 0,
+      };
+
+      rows.forEach((row) => {
+        const count = parseInt(row.count);
+        stats.totalProduced += count;
+        stats.totalDefects += parseInt(row.totalDefects) || 0;
+
+        switch (row.type) {
+          case "firsttimethrough":
+            stats.firstTimeThrough = count;
+            break;
+          case "needimprovement":
+            stats.needImprovement = count;
+            break;
+          case "modified":
+            stats.modified = count;
+            break;
+          case "rejected":
+            stats.rejected = count;
+            break;
+        }
+      });
+
+      if (stats.totalProduced > 0) {
+        stats.defectRate = (
+          ((stats.needImprovement + stats.rejected) / stats.totalProduced) *
+          100
+        ).toFixed(2);
+        stats.rejectionRate = (
+          (stats.rejected / stats.totalProduced) *
+          100
+        ).toFixed(2);
+      }
+
+      return stats;
+    } catch (error) {
+      throw error;
+    }
   }
 
   static async getDefectAnalysis(productionLineId, startDate, endDate) {
-    const records = await this.query()
-      .where("production_line_id", productionLineId)
-      .where("type", "need_improvement")
-      .whereBetween("timestamp", [startDate, endDate])
-      .whereNotNull("defects");
+    try {
+      const [rows] = await pool.query(
+        `SELECT defects FROM production_records
+         WHERE production_line_id = ? AND type = 'needimprovement' 
+         AND timestamp BETWEEN ? AND ?
+         AND defects IS NOT NULL`,
+        [productionLineId, startDate, endDate]
+      );
 
-    const defectCounts = {};
+      const defectCounts = {};
 
-    records.forEach((record) => {
-      if (record.defects && Array.isArray(record.defects)) {
-        record.defects.forEach((defect) => {
-          defectCounts[defect] = (defectCounts[defect] || 0) + 1;
-        });
+      rows.forEach((row) => {
+        try {
+          const defects = JSON.parse(row.defects);
+          if (Array.isArray(defects)) {
+            defects.forEach((defect) => {
+              defectCounts[defect] = (defectCounts[defect] || 0) + 1;
+            });
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      });
+
+      const analysis = Object.entries(defectCounts)
+        .map(([defect, count]) => ({ defect, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return analysis;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getProductionHistory(filters = {}, page = 1, limit = 50) {
+    try {
+      let query = "SELECT * FROM production_records WHERE 1=1";
+      const params = [];
+
+      if (filters.productionLineId) {
+        query += " AND production_line_id = ?";
+        params.push(filters.productionLineId);
       }
-    });
 
-    return Object.entries(defectCounts)
-      .map(([defect, count]) => ({ defect, count }))
-      .sort((a, b) => b.count - a.count);
+      if (filters.type) {
+        query += " AND type = ?";
+        params.push(filters.type);
+      }
+
+      if (filters.startDate && filters.endDate) {
+        query += " AND timestamp BETWEEN ? AND ?";
+        params.push(filters.startDate, filters.endDate);
+      }
+
+      // Count total
+      const [countRows] = await pool.query(
+        `SELECT COUNT(*) as total FROM (${query}) as counted`,
+        params
+      );
+      const total = countRows.total;
+
+      // Get paginated results
+      const offset = (page - 1) * limit;
+      query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+
+      const [rows] = await pool.query(query, [...params, limit, offset]);
+
+      return {
+        data: rows,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }
 
