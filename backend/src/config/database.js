@@ -1,37 +1,26 @@
-const Knex = require("knex");
-const { Model } = require("objection");
-const knexConfig = require("../../knexfile");
-const { logger } = require("../utils/logger");
+const mysql = require("mysql2/promise");
+require("dotenv").config();
 
-let knex;
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "intrack_db",
+  port: process.env.DB_PORT || 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
-const setupDatabase = async () => {
+// Test connection
+(async () => {
   try {
-    const environment = process.env.NODE_ENV || "development";
-    knex = Knex(knexConfig[environment]);
-
-    // Test the connection
-    await knex.raw("SELECT 1");
-
-    // Bind Objection to Knex
-    Model.knex(knex);
-
-    logger.info(`Database connected successfully in ${environment} mode`);
-    return knex;
+    const connection = await pool.getConnection();
+    console.log("✅ Database connected successfully");
+    connection.release();
   } catch (error) {
-    logger.error("Database connection failed:", error);
-    throw error;
+    console.error("❌ Database connection failed:", error.message);
   }
-};
+})();
 
-const getKnex = () => {
-  if (!knex) {
-    throw new Error("Database not initialized. Call setupDatabase() first.");
-  }
-  return knex;
-};
-
-module.exports = {
-  setupDatabase,
-  getKnex,
-};
+module.exports = pool;
