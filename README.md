@@ -1,266 +1,216 @@
-InTrack - Quality Control Management System
+# InTrack - Quality Control Management System
 
 A modern web-based quality control system designed for garment manufacturing facilities. InTrack enables production teams to record real-time quality metrics, defects, and production data, while providing administrators with comprehensive analytics and dashboards.
 
-Overview
-InTrack is a full-stack application built with React (frontend) and Node.js/Express (backend), using MySQL for data persistence. The system supports two main roles:
+## Overview
 
-QC Manager: Records production data, defects, modifications, and rejections in real-time
+InTrack is a full-stack application built with **React** (frontend) and **Node.js/Express** (backend), using **MySQL** for data persistence. The system supports two main roles:
 
-Admin: Monitors production analytics, rework rates, and quality metrics across all production lines
+- **QC Manager**: Records production data, defects, modifications, and rejections in real-time
+- **Admin**: Monitors production analytics, rework rates, and quality metrics across all production lines
 
-Key Features
+## Key Features
 
-Role-Based Access: No login required; select role on startup
+- **Role-Based Access**: No login required; select role on startup
+- **Real-Time Recording**: Instant QC data capture for production units
+- **Production Tracking**: Monitor FTT (First Time Through), defects, modifications, and rejections
+- **Multi-Line Support**: Track data across 5+ production lines simultaneously
+- **Analytics Dashboard**: View production trends, defect rates, and rework metrics
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Professional UI**: Built with Semantic UI for a polished user experience
+- **Production History**: Complete audit trail of all recorded quality events
 
-Real-Time Recording: Instant QC data capture for production units
+## Tech Stack
 
-Production Tracking: Monitor FTT (First Time Through), defects, modifications, and rejections
+### Frontend
 
-Multi-Line Support: Track data across 5+ production lines simultaneously
+- **React 18** - UI library
+- **Semantic UI React** - Component framework
+- **Moment.js** - Date/time handling
+- **CSS3** - Custom styling with animations
 
-Analytics Dashboard: View production trends, defect rates, and rework metrics
+### Backend
 
-Responsive Design: Works seamlessly on desktop, tablet, and mobile devices
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **MySQL** - Relational database
+- **CORS** - Cross-origin resource sharing
 
-Professional UI: Built with Semantic UI for a polished user experience
+### Tools & Environment
 
-Production History: Complete audit trail of all recorded quality events
+- **npm** - Package management
+- **Homebrew** - Dependency management (macOS)
+- **Git** - Version control
 
-Tech Stack
-Frontend
-React 18 - UI library
-
-Semantic UI React - Component framework
-
-Moment.js - Date/time handling
-
-CSS3 - Custom styling with animations
-
-Backend
-Node.js - JavaScript runtime
-
-Express.js - Web framework
-
-MySQL - Relational database
-
-CORS - Cross-origin resource sharing
-
-Tools & Environment
-npm - Package management
-
-Homebrew - Dependency management (macOS)
-
-Git - Version control
-
-Prerequisites
+## Prerequisites
 
 Before running InTrack, ensure you have installed:
 
-Node.js (v14+): Download
+- **Node.js** (v14+): [Download](https://nodejs.org/)
+- **MySQL** (v5.7+): `brew install mysql`
+- **npm** (comes with Node.js)
+- **Git** (optional): `brew install git`
 
-MySQL (v5.7+): brew install mysql
+## Quick Start
 
-npm (comes with Node.js)
+### 1. Clone the Repository
 
-Git (optional): brew install git
-
-Quick Start
-
-1. Clone the Repository
-   bash
-   git clone https://github.com/yourusername/intrack.git
-   cd intrack
-2. Set Up MySQL Database
-   bash
-
-# Start MySQL
+### 2. Set Up MySQL Database
 
 mysql.server start
-
-# Create database and user
-
 mysql -u root -p
 CREATE DATABASE intrack_db;
-CREATE USER 'intrack_user'@'localhost' IDENTIFIED BY 'StrongPass123!';
-GRANT ALL PRIVILEGES ON intrack_db.\* TO 'intrack_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT; 3. Configure Backend Environment
-Create backend/.env:
+EXIT;
 
-text
+### 3. Configure Backend Environment
+
+Create `backend/.env`:
+
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=intrack_db
 DB_USER=root
 DB_PASSWORD=StrongPass123!
 NODE_ENV=development
-PORT=3001 4. Install Dependencies & Start Backend
-bash
+PORT=3001
+
+### 4. Install Dependencies & Start Backend
+
 cd backend
 npm install
 npm run dev
-Backend runs on http://localhost:3001
 
-5. Install Dependencies & Start Frontend
-   In a new terminal:
+Backend runs on `http://localhost:3001`
 
-bash
+### 5. Install Dependencies & Start Frontend
+
+In a **new terminal**:
+
 cd frontend
 npm install
 npm start
-Frontend runs on http://localhost:3000
 
-6. Access the Application
-   Open http://localhost:3000 in your browser and select your role:
+Frontend runs on `http://localhost:3000`
 
-Admin → Dashboard with analytics
+### 6. Access the Application
 
-QC Manager → Quality control recording interface
+Open http://localhost:3000 and select your role
 
-Project Structure
+## Project Structure
 
-text
 intrack/
 ├── backend/
 │ ├── src/
-│ │ ├── config/ # Database configuration
-│ │ ├── routes/ # API endpoints
-│ │ ├── controllers/ # Business logic
-│ │ └── app.js # Express setup
-│ ├── .env # Environment variables
+│ │ ├── config/
+│ │ ├── routes/
+│ │ ├── controllers/
+│ │ └── app.js
+│ ├── .env
 │ ├── package.json
-│ └── server.js # Server entry point
+│ └── server.js
 │
 ├── frontend/
 │ ├── src/
-│ │ ├── components/ # React components
-│ │ │ ├── Admin/ # Admin dashboard
-│ │ │ ├── QC/ # QC panel
-│ │ │ ├── Navigation/ # Nav bar
-│ │ │ └── RoleSelection/ # Role selector
-│ │ ├── styles/ # CSS files
-│ │ ├── context/ # Context API
+│ │ ├── components/
+│ │ │ ├── Admin/
+│ │ │ ├── QC/
+│ │ │ ├── Navigation/
+│ │ │ └── RoleSelection/
+│ │ ├── styles/
+│ │ ├── context/
 │ │ ├── App.js
 │ │ └── index.js
 │ ├── public/
-│ ├── package.json
-│ └── .env (optional)
+│ └── package.json
 │
 └── README.md
-Usage
 
-QC Manager Workflow
-Log in as QC Manager
+## Usage
 
-Select production line from dropdown
+### QC Manager Workflow
 
-Record production data using action buttons:
+1. Log in as QC Manager
+2. Select production line from dropdown
+3. Record production data using action buttons
+4. View history in the table
+5. Switch lines as needed
 
-First Time Through - Product passed without issues
+### Admin Workflow
 
-Record Defect - Select defect category and record
+1. Log in as Admin
+2. View dashboard with key metrics
+3. Analyze rework rates by production line
+4. Review daily summaries
+5. Adjust date range to view trends
 
-Record Modified - Product needed modification
+## Database Management
 
-Record Rejection - Product failed quality check
+### View Database Tables
 
-View history - See all recorded entries in the table
-
-Switch lines - Change production line to record for different areas
-
-Admin Workflow
-Log in as Admin
-
-View dashboard with key metrics:
-
-Total products produced
-
-Average defect rate
-
-Active production lines
-
-Analyze rework rates by production line
-
-Review daily summaries with detailed defect breakdowns
-
-Adjust date range (7, 30, or 90 days) to view trends
-
-Database Schema
-
-Key Tables
-production_records
-
-sql
-id, production_line_id, record_type, defect_category,
-rejection_reason, timestamp, user_id, notes
-production_lines
-
-sql
-id, name, location, status, created_at
-defect_categories
-
-sql
-id, name, description, severity
-rejection_reasons
-
-sql
-id, reason, category, actionable
-Available Scripts
-
-Backend
-bash
-npm run dev # Start development server with auto-reload
-npm run start # Start production server
-npm test # Run tests (if configured)
-Frontend
-bash
-npm start # Start development server
-npm run build # Create optimized production build
-npm test # Run tests
-npm run eject # Expose webpack configuration (one-way)
-Database Management
-
-View Database Tables
-bash
 mysql -u root -p
 USE intrack_db;
 SHOW TABLES;
 SELECT \* FROM production_records;
 EXIT;
-Reset Database
-bash
-mysql -u root -p -e "DROP DATABASE intrack_db; CREATE DATABASE intrack_db;"
-mysql -u root -p intrack_db < backend/schema.sql
-Troubleshooting
 
-MySQL Connection Error
-Problem: Can't connect to local MySQL server through socket
+### Reset Database
+
+mysql -u root -p -e "DROP DATABASE intrack_db; CREATE DATABASE intrack_db;"
+
+## Troubleshooting
+
+### MySQL Connection Error
+
+Problem: `Can't connect to local MySQL server through socket`
 
 Solution:
 
-bash
 mysql.server start
 brew services start mysql
-Port Already in Use
+
+text
+
+### Port Already in Use
+
 For port 3001 (backend):
 
-bash
 lsof -i :3001
 kill -9 <PID>
+
+text
+
 For port 3000 (frontend):
 
-bash
 lsof -i :3000
 kill -9 <PID>
-Dependencies Not Installing
-bash
 
-# Clear npm cache
+text
+
+### Dependencies Not Installing
 
 npm cache clean --force
-
-# Reinstall
-
 rm -rf node_modules package-lock.json
 npm install
+
+text
+
+## Security Notes
+
+- Change default MySQL password in production
+- Use environment variables for sensitive data
+- Never commit `.env` files to git
+- Add `.env` to `.gitignore`
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
+
+**Last Updated**: December 27, 2025
