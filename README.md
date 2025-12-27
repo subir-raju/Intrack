@@ -55,17 +55,31 @@ Before running InTrack, ensure you have installed:
 
 ### 1. Clone the Repository
 
+```bash
+git clone https://github.com/yourusername/intrack.git
+cd intrack
+```
+
 ### 2. Set Up MySQL Database
 
+```bach
+# Start MySQL
 mysql.server start
+
+# Create database and user
 mysql -u root -p
 CREATE DATABASE intrack_db;
+CREATE USER 'intrack_user'@'localhost' IDENTIFIED BY 'StrongPass123!';
+GRANT ALL PRIVILEGES ON intrack_db.* TO 'intrack_user'@'localhost';
+FLUSH PRIVILEGES;
 EXIT;
+```
 
 ### 3. Configure Backend Environment
 
 Create `backend/.env`:
 
+```bash
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_NAME=intrack_db
@@ -73,12 +87,15 @@ DB_USER=root
 DB_PASSWORD=StrongPass123!
 NODE_ENV=development
 PORT=3001
+```
 
 ### 4. Install Dependencies & Start Backend
 
+```bash
 cd backend
 npm install
 npm run dev
+```
 
 Backend runs on `http://localhost:3001`
 
@@ -86,9 +103,11 @@ Backend runs on `http://localhost:3001`
 
 In a **new terminal**:
 
+```bash
 cd frontend
 npm install
 npm start
+```
 
 Frontend runs on `http://localhost:3000`
 
@@ -98,14 +117,18 @@ Open http://localhost:3000 and select your role
 
 ## Project Structure
 
+```
 intrack/
 ├── backend/
 │ ├── src/
 │ │ ├── config/
 │ │ ├── routes/
+│ │ ├── logs/
 │ │ ├── controllers/
-│ │ └── app.js
+│ │ ├── routes
+│ │ └── utils
 │ ├── .env
+│ ├── index.js
 │ ├── package.json
 │ └── server.js
 │
@@ -113,17 +136,20 @@ intrack/
 │ ├── src/
 │ │ ├── components/
 │ │ │ ├── Admin/
-│ │ │ ├── QC/
-│ │ │ ├── Navigation/
-│ │ │ └── RoleSelection/
+│ │ │ ├── Auth/
+│ │ │ ├── Common/
+│ │ │ └── QC/
 │ │ ├── styles/
 │ │ ├── context/
+│ │ ├── assets
+│ │ ├── utils
 │ │ ├── App.js
 │ │ └── index.js
 │ ├── public/
 │ └── package.json
 │
 └── README.md
+```
 
 ## Usage
 
@@ -142,72 +168,6 @@ intrack/
 3. Analyze rework rates by production line
 4. Review daily summaries
 5. Adjust date range to view trends
-
-## Database Management
-
-### View Database Tables
-
-mysql -u root -p
-USE intrack_db;
-SHOW TABLES;
-SELECT \* FROM production_records;
-EXIT;
-
-### Reset Database
-
-mysql -u root -p -e "DROP DATABASE intrack_db; CREATE DATABASE intrack_db;"
-
-## Troubleshooting
-
-### MySQL Connection Error
-
-Problem: `Can't connect to local MySQL server through socket`
-
-Solution:
-
-mysql.server start
-brew services start mysql
-
-text
-
-### Port Already in Use
-
-For port 3001 (backend):
-
-lsof -i :3001
-kill -9 <PID>
-
-text
-
-For port 3000 (frontend):
-
-lsof -i :3000
-kill -9 <PID>
-
-text
-
-### Dependencies Not Installing
-
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
-
-text
-
-## Security Notes
-
-- Change default MySQL password in production
-- Use environment variables for sensitive data
-- Never commit `.env` files to git
-- Add `.env` to `.gitignore`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## License
 
