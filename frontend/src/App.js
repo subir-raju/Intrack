@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,6 +8,7 @@ import {
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProductionProvider } from "./contexts/ProductionContext";
 import RoleSelection from "./components/Auth/RoleSelection";
+import Login from "./components/Auth/Login";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import Navigation from "./components/Common/Navigation";
 import QCManagerPanel from "./components/QC/QCManagerPanel";
@@ -16,40 +17,45 @@ import "./App.css";
 import "semantic-ui-css/semantic.min.css";
 
 function AppContent() {
-  const { isAuthenticated, role } = useAuth();
-
-  if (!isAuthenticated) {
-    return <RoleSelection />;
-  }
+  const { isAuthenticated } = useAuth();
 
   return (
-    <div className="app-container">
-      <Navigation />
-      <div className="main-content">
-        <Routes>
-          <Route
-            path="/qc"
-            element={
-              <ProtectedRoute requiredRole="qcmanager">
-                <QCManagerPanel />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/"
-            element={<Navigate to={role === "admin" ? "/admin" : "/qc"} />}
-          />
-        </Routes>
-      </div>
-    </div>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<RoleSelection />} />
+
+      {/* Login Routes */}
+      {/* Login Routes - with role parameter */}
+      <Route path="/login/:role" element={<Login />} />
+
+      {/* Protected Routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <div>
+              <Navigation />
+              <AdminDashboard />
+            </div>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/qc"
+        element={
+          <ProtectedRoute requiredRole="qc_manager">
+            <div>
+              <Navigation />
+              <QCManagerPanel />
+            </div>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch all - redirect to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

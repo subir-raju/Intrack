@@ -1,67 +1,83 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
-import api from "../utils/api";
+import React, { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState(null);
+// Hard-coded demo users for development
+const DEMO_USERS = {
+  admin: {
+    email: "admin@intrack.com",
+    password: "admin123",
+    role: "admin",
+    name: "Admin User",
+    id: 1,
+  },
+  qc: {
+    email: "qc@intrack.com",
+    password: "qc123",
+    role: "qc_manager",
+    name: "QC Manager",
+    id: 2,
+  },
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
+    const saved = sessionStorage.getItem("intrack-user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const simulateLogin = useCallback((selectedRole) => {
+  const login = (email, password) => {
     setLoading(true);
-    try {
-      // Simulate user data based on role
-      const userData = {
-        id: Math.floor(Math.random() * 1000),
-        name: selectedRole === "admin" ? "Admin User" : "QC Manager",
-        email: `${selectedRole}@intrack.local`,
-        role: selectedRole,
-        productionLineId:
-          selectedRole === "admin" ? null : Math.floor(Math.random() * 5) + 1,
-      };
+    setError(null);
 
-      // Simulate token (in real app, this comes from backend)
-      const fakeToken = `fake_token_${Date.now()}`;
+    // Simulate API delay
+    setTimeout(() => {
+      const foundUser = Object.values(DEMO_USERS).find(
+        (u) => u.email === email && u.password === password
+      );
 
-      localStorage.setItem("token", fakeToken);
-      localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("role", selectedRole);
+      if (foundUser) {
+        sessionStorage.setItem("intrack-user", JSON.stringify(foundUser));
+        sessionStorage.setItem("intrack-token", "demo-token-" + foundUser.id);
+        setUser(foundUser);
+        setLoading(false);
+        return { success: true, user: foundUser };
+      } else {
+        setError("Invalid email or password");
+        setLoading(false);
+        return { success: false, message: "Invalid email or password" };
+      }
+    }, 500);
+  };
 
-      setUser(userData);
-      setRole(selectedRole);
-      setIsAuthenticated(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
+  const logout = () => {
+    sessionStorage.removeItem("intrack-user");
+    sessionStorage.removeItem("intrack-token");
     setUser(null);
-    setRole(null);
-    setIsAuthenticated(false);
-  }, []);
+    setError(null);
+  };
 
   const value = {
     user,
-    isAuthenticated,
-    role,
+    error,
     loading,
-    simulateLogin,
+    login,
     logout,
+    isAuthenticated: !!user,
+    role: user?.role,
+    isAdmin: user?.role === "admin",
+    isQCManager: user?.role === "qc_manager",
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}
+};

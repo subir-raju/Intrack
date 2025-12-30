@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Menu,
   Container,
@@ -7,7 +8,6 @@ import {
   Icon,
   Header,
 } from "semantic-ui-react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useProduction } from "../../contexts/ProductionContext";
 import "../../styles/Navigation.css";
@@ -30,73 +30,38 @@ function Navigation() {
   }));
 
   return (
-    <Menu fixed="top" inverted className="navigation-menu">
+    <Menu secondary className="navigation-bar">
       <Container>
-        <Menu.Item as="a" header onClick={() => navigate("/")}>
+        <Menu.Item as="a" onClick={() => navigate("/")}>
           <Icon name="industry" />
           InTrack
         </Menu.Item>
 
-        {role === "qcmanager" && (
+        {/* Production Line Selector - Only show for QC Manager */}
+        {role === "qc_manager" && (
           <Menu.Item>
-            <span className="menu-label">Production Line:</span>
             <Dropdown
-              selection
-              value={currentProductionLine}
+              placeholder="Select Production Line"
               options={productionLineOptions}
-              onChange={(e, { value }) => setCurrentProductionLine(value)}
-              className="production-line-dropdown"
+              value={currentProductionLine}
+              onChange={(e, data) => setCurrentProductionLine(data.value)}
+              selection
             />
           </Menu.Item>
         )}
 
         <Menu.Menu position="right">
-          {role === "qcmanager" && (
-            <Menu.Item
-              name="QC Panel"
-              active={window.location.pathname === "/qc"}
-              onClick={() => navigate("/qc")}
-            >
-              <Icon name="clipboard check" />
-              QC Manager
-            </Menu.Item>
-          )}
-
-          {role === "admin" && (
-            <Menu.Item
-              name="Dashboard"
-              active={window.location.pathname === "/admin"}
-              onClick={() => navigate("/admin")}
-            >
-              <Icon name="dashboard" />
-              Dashboard
-            </Menu.Item>
-          )}
+          <Menu.Item>
+            <Header as="span" size="small">
+              {user?.name} ({role === "admin" ? "Admin" : "QC Manager"})
+            </Header>
+          </Menu.Item>
 
           <Menu.Item>
-            <Dropdown
-              trigger={
-                <span>
-                  <Icon name="user" />
-                  {user?.name}
-                </span>
-              }
-              pointing="top right"
-            >
-              <Dropdown.Menu>
-                <Dropdown.Item disabled>
-                  <strong>{user?.email}</strong>
-                </Dropdown.Item>
-                <Dropdown.Item>
-                  Role: {role === "admin" ? "Administrator" : "QC Manager"}
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item onClick={handleLogout}>
-                  <Icon name="sign out" />
-                  Logout
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+            <Button primary onClick={handleLogout}>
+              <Icon name="sign out" />
+              Logout
+            </Button>
           </Menu.Item>
         </Menu.Menu>
       </Container>

@@ -1,83 +1,85 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Container, Grid, Card, Button, Header, Icon } from "semantic-ui-react";
-import { useAuth } from "../../contexts/AuthContext";
 import "../../styles/RoleSelection.css";
 
 function RoleSelection() {
-  const { simulateLogin, loading } = useAuth();
+  const navigate = useNavigate();
 
   const handleRoleSelect = (role) => {
-    simulateLogin(role);
+    // Navigate to respective login page based on role selected
+    if (role === "admin") {
+      navigate("/login/admin");
+    } else if (role === "qc") {
+      navigate("/login/qc");
+    }
   };
 
   return (
     <div className="role-selection-container">
-      <Container>
-        <div className="role-selection-content">
-          <Header as="h1" className="role-title">
-            <Icon name="industry" />
-            InTrack
-          </Header>
-          <Header.Subheader className="role-subtitle">
-            Quality Control System for Garment Manufacturing
-          </Header.Subheader>
+      <Container textAlign="center" style={{ marginTop: "50px" }}>
+        <Header as="h1" style={{ marginBottom: "50px" }}>
+          <Icon name="industry" />
+          InTrack - Quality Control Management System
+        </Header>
 
-          <Grid columns={2} stackable centered className="role-grid">
-            <Grid.Column width={6}>
-              <Card className="role-card admin-card" fluid>
-                <Card.Content textAlign="center">
-                  <Icon name="dashboard" size="huge" color="blue" />
-                  <Card.Header className="role-card-title">
-                    Admin Dashboard
-                  </Card.Header>
-                  <Card.Description className="role-card-description">
-                    View comprehensive analytics and production metrics
-                  </Card.Description>
-                </Card.Content>
-                <Card.Content extra textAlign="center">
-                  <Button
-                    primary
-                    size="large"
-                    className="role-button"
-                    onClick={() => handleRoleSelect("admin")}
-                    loading={loading}
-                    disabled={loading}
-                    fluid
-                  >
-                    Admin
-                  </Button>
-                </Card.Content>
-              </Card>
-            </Grid.Column>
+        <Grid
+          columns={2}
+          stackable
+          relaxed
+          centered
+          style={{ maxWidth: "800px", margin: "0 auto" }}
+        >
+          {/* Admin Card */}
+          <Grid.Column>
+            <Card className="role-card admin-card">
+              <Card.Content textAlign="center">
+                <Icon name="user shield" size="huge" color="blue" />
+                <Card.Header style={{ marginTop: "20px" }}>Admin</Card.Header>
+                <Card.Description
+                  style={{ marginTop: "10px", marginBottom: "20px" }}
+                >
+                  View analytics, monitor production lines, and manage quality
+                  metrics
+                </Card.Description>
+                <Button
+                  primary
+                  size="large"
+                  onClick={() => handleRoleSelect("admin")}
+                  style={{ width: "100%" }}
+                >
+                  Login as Admin
+                </Button>
+              </Card.Content>
+            </Card>
+          </Grid.Column>
 
-            <Grid.Column width={6}>
-              <Card className="role-card qc-card" fluid>
-                <Card.Content textAlign="center">
-                  <Icon name="clipboard check" size="huge" color="green" />
-                  <Card.Header className="role-card-title">
-                    QC Manager
-                  </Card.Header>
-                  <Card.Description className="role-card-description">
-                    Record production data and manage quality control checks
-                  </Card.Description>
-                </Card.Content>
-                <Card.Content extra textAlign="center">
-                  <Button
-                    secondary
-                    size="large"
-                    className="role-button"
-                    onClick={() => handleRoleSelect("qcmanager")}
-                    loading={loading}
-                    disabled={loading}
-                    fluid
-                  >
-                    QC Manager
-                  </Button>
-                </Card.Content>
-              </Card>
-            </Grid.Column>
-          </Grid>
-        </div>
+          {/* QC Manager Card */}
+          <Grid.Column>
+            <Card className="role-card qc-card">
+              <Card.Content textAlign="center">
+                <Icon name="check circle" size="huge" color="green" />
+                <Card.Header style={{ marginTop: "20px" }}>
+                  QC Manager
+                </Card.Header>
+                <Card.Description
+                  style={{ marginTop: "10px", marginBottom: "20px" }}
+                >
+                  Record production data, track defects, and manage quality
+                  control
+                </Card.Description>
+                <Button
+                  color="green"
+                  size="large"
+                  onClick={() => handleRoleSelect("qc")}
+                  style={{ width: "100%" }}
+                >
+                  Login as QC Manager
+                </Button>
+              </Card.Content>
+            </Card>
+          </Grid.Column>
+        </Grid>
       </Container>
     </div>
   );

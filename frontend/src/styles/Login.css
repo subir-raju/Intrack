@@ -1,0 +1,84 @@
+.login-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container .ui.segment {
+  background-color: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+.login-container .ui.form {
+  text-align: left;
+}
+
+.login-container .ui.form .field label {
+  font-weight: 600;
+  color: #333;
+}
+
+.login-container input[type="email"],
+.login-container input[type="password"] {
+  padding: 12px 15px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.login-container input[type="email"]:focus,
+.login-container input[type="password"]:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+}
+
+.login-container .ui.primary.button {
+  background-color: #667eea;
+  border-color: #667eea;
+  margin-top: 10px;
+}
+
+.login-container .ui.primary.button:hover {
+  background-color: #5568d3;
+}
+
+.login-container .ui.secondary.button {
+  background-color: #27ae60;
+  color: white;
+  border-color: #27ae60;
+  margin-top: 5px;
+}
+
+.login-container .ui.secondary.button:hover {
+  background-color: #229954;
+}
+
+.login-container .ui.negative.message {
+  margin-bottom: 20px;
+}
+
+.login-container .ui.basic.button {
+  color: white;
+  border-color: white;
+  margin-top: 20px;
+}
+
+.login-container .ui.basic.button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+@media only screen and (max-width: 768px) {
+  .login-container {
+    padding: 20px 10px;
+  }
+
+  .login-container .ui.segment {
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
+}
